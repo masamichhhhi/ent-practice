@@ -5,6 +5,7 @@ import (
 	context "context"
 	sqlgraph "entgo.io/ent/dialect/sql/sqlgraph"
 	ent "github.com/masamichhhhi/ent-grpc-example/ent"
+	category "github.com/masamichhhhi/ent-grpc-example/ent/category"
 	user "github.com/masamichhhhi/ent-grpc-example/ent/user"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -33,6 +34,12 @@ func toProtoUser(e *ent.User) (*User, error) {
 	v.Id = id
 	name := e.Name
 	v.Name = name
+	for _, edg := range e.Edges.Administered {
+		id := int32(edg.ID)
+		v.Administered = append(v.Administered, &Category{
+			Id: id,
+		})
+	}
 	return v, nil
 }
 
@@ -44,6 +51,10 @@ func (svc *UserService) Create(ctx context.Context, req *CreateUserRequest) (*Us
 	m.SetEmailAddress(userEmailAddress)
 	userName := user.GetName()
 	m.SetName(userName)
+	for _, item := range user.GetAdministered() {
+		administered := int(item.GetId())
+		m.AddAdministeredIDs(administered)
+	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:
@@ -75,6 +86,9 @@ func (svc *UserService) Get(ctx context.Context, req *GetUserRequest) (*User, er
 	case GetUserRequest_WITH_EDGE_IDS:
 		get, err = svc.client.User.Query().
 			Where(user.ID(id)).
+			WithAdministered(func(query *ent.CategoryQuery) {
+				query.Select(category.FieldID)
+			}).
 			Only(ctx)
 	default:
 		return nil, status.Error(codes.InvalidArgument, "invalid argument: unknown view")
@@ -100,6 +114,10 @@ func (svc *UserService) Update(ctx context.Context, req *UpdateUserRequest) (*Us
 	m.SetEmailAddress(userEmailAddress)
 	userName := user.GetName()
 	m.SetName(userName)
+	for _, item := range user.GetAdministered() {
+		administered := int(item.GetId())
+		m.AddAdministeredIDs(administered)
+	}
 	res, err := m.Save(ctx)
 	switch {
 	case err == nil:

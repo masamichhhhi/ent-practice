@@ -7,12 +7,22 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/masamichhhhi/ent-grpc-example/ent/proto/entpb";
 
+message Category {
+  int32 id = 1;
+
+  string name = 2;
+
+  User admin = 3;
+}
+
 message User {
   int32 id = 1;
 
   string name = 2;
 
   string email_address = 3;
+
+  repeated Category administered = 5;
 }
 
 message CreateUserRequest {

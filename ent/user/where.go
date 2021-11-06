@@ -4,6 +4,7 @@ package user
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/masamichhhhi/ent-grpc-example/ent/predicate"
 )
 
@@ -323,6 +324,34 @@ func EmailAddressEqualFold(v string) predicate.User {
 func EmailAddressContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldEmailAddress), v))
+	})
+}
+
+// HasAdministered applies the HasEdge predicate on the "administered" edge.
+func HasAdministered() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AdministeredTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, AdministeredTable, AdministeredColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAdministeredWith applies the HasEdge predicate on the "administered" edge with a given conditions (other predicates).
+func HasAdministeredWith(preds ...predicate.Category) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AdministeredInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, AdministeredTable, AdministeredColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

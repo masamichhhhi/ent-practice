@@ -1,0 +1,18 @@
+version: "3.3"
+services:
+  db:
+    image: mysql@sha256:dce31fcdd15aaedb5591aa89f19ec37cb79981af46511781fa41287d88ed0abd
+    container_name: ent-tutorial
+    restart: always
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      DB_HOST_DEV: localhost
+      DB_PORT: 3306
+    ports:
+      - "33306:3306"
+    volumes:
+      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d
